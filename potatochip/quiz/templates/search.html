@@ -21,13 +21,16 @@
     </div>
 
     <form class="quiz-header" action="{% url 'about' %}" method="get">
-        <button type="submit" class="curr-page">About</button>
+        <button type="submit">About</button>
     </form>
     <form class="quiz-header" action="{% url 'home' %}" method="get">
         <button type="submit">Home</button>
     </form>
     <form class="quiz-header" action="{% url 'join' %}" method="get">
         <button type="submit">Join</button>
+    </form>
+    <form class="quiz-header" action="{% url 'search' %}" method="get">
+        <button class="curr-page" type="submit">Search</button>
     </form>
     <form class="quiz-header" action="{% url 'logout' %}" method="post">
         {% csrf_token %}

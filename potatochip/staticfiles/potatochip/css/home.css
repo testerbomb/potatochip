@@ -31,7 +31,6 @@ body {
     display: block;
     text-align: center;
     padding: 16px;
-    border: 1px solid #ddd;
     text-decoration: none;
     color: inherit;
     font-family: "Sour Gummy", sans-serif;
@@ -185,11 +184,18 @@ create:hover {
     }
 }
 
+@media (max-width: 612px) {
+    .quiz-grid {
+        grid-template-columns: repeat(1, minmax(200px, 1fr));
+        grid-template-rows: repeat(1, auto);
+    }
+}
+
 .quiz-header > button {
     white-space: nowrap;
 }
 /* responsive layout */
-@media (max-width: 900px) {
+@media (min-width: 613px) and (max-width: 900px) {
     .quiz-grid {
         grid-template-columns: repeat(2, minmax(200px, 1fr));
         grid-template-rows: repeat(2, auto);

@@ -29,6 +29,9 @@
     <form class="quiz-header" action="{% url 'join' %}" method="get">
         <button type="submit">Join</button>
     </form>
+    <form class="quiz-header" action="{% url 'search' %}" method="get">
+        <button type="submit">Search</button>
+    </form>
     <form class="quiz-header" action="{% url 'logout' %}" method="post">
         {% csrf_token %}
         <button type="submit" class="sign-out">Sign out</button>

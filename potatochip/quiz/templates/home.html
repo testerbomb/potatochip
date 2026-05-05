@@ -37,7 +37,7 @@
 {% endblock %}
 
 <div class="main">
-    <h1 class="quiz-box">Create or Host Your Quiz!</h1>
+    <h1 class="quiz-box">Choose Your Quiz!</h1>
     <div class="quiz-grid">
         {% for quiz in page_obj %}
         <a class="quiz-buttons" href="{% url 'quiz_detail' quiz.id %}" data-quiz-id="{{ quiz.id }}">
@@ -46,9 +46,6 @@
             <p>{{ quiz.description|truncatechars:120 }}</p>
             {% endif %}
         </a>
-
-        {% empty %}
-        <p class="quiz-text">No quizzes available yet.</p>
         {% endfor %}
         <button class="create" onclick="create_new_quiz()">+</button>
     </div>

@@ -1,6 +1,14 @@
 /* OUR STUFF HERE */
 body {
     background-color: var(--primary-bg);
+    justify-content: center;
+    display: flex;
+}
+
+@media (max-width: 730px) {
+    .box {
+        width: 85vw;
+    }
 }
 
 .space {

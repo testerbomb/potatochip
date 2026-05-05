@@ -124,6 +124,7 @@ html[data-theme="light"],
 }
 
 button {
+    white-space: nowrap;
     background-color: var(--button-fg);
     border: 4px solid;
 
@@ -1382,4 +1383,30 @@ a.deletelink:hover {
 
 .invis {
     visibility: hidden;
+}
+
+@media (max-width: 612px) {
+    .nav-buttons {
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .header-image {
+        order: -1;
+        flex-basis: 100%;
+        justify-content: center;
+        margin: 0 auto 4px;
+    }
+
+    .nav-buttons form {
+        display: flex;
+        justify-content: center;
+        flex: 0 0 auto;
+    }
+
+    .nav-buttons > .invis {
+        display: none;
+    }
 }
