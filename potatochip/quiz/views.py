@@ -28,6 +28,9 @@ def create(request, pk):
     quiz = get_object_or_404(Quiz, id=pk, creator=request.user)
     return render(request, "create.html", {"quiz": quiz, "quiz_id": quiz.id})
 
+def search(request):
+    return render(request, 'search.html')
+
 @login_required
 def host_lobby(request, code):
     try:

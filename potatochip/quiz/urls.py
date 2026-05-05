@@ -5,6 +5,7 @@ from . import api
 urlpatterns = [
     path('', views.index, name='index'),
     path('home', views.home, name='home'),
+    path('search', views.search, name='search'),
     path('create/<int:pk>', views.create, name='create'),
     path('join/', views.join, name="join"),
     path('join/<str:code>/', views.join_quiz, name="join_quiz"),

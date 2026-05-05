@@ -2,6 +2,7 @@ from ninja import NinjaAPI, Schema
 from ninja.errors import HttpError
 from .models import Quiz, Quiz_Instance, Quiz_Question, Answer_Choice
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 import random
 
 api = NinjaAPI()
@@ -76,6 +77,19 @@ def create_new_quiz(request):
      )
     return {'id': quiz.id}
 
+@api.get('/quiz/')
+def search(request, q: str = ''):
+    quizzes = Quiz.objects.all()
+    if q:
+        quizzes = quizzes.filter(
+            Q(title__icontains=q) | Q(questions__text__icontains=q)
+        ).distinct()
+    return {
+        'results': [
+            {'id': quiz.id, 'title': quiz.title or 'None'}
+            for quiz in quizzes
+        ]
+    }
 
 @api.get('/quiz/{quiz_id}/')
 def get_quiz_for_edit(request, quiz_id: int):

@@ -1,14 +1,6 @@
-{% extends "base.html" %}
-{% load static %}
-
-{% block head_extra %}
-<link rel="stylesheet" href="{% static 'potatochip/css/quiz.css' %}">
-{% endblock %}
-
-{% block title %}{{ quiz.title }}{% endblock %}
-
-{% block body %}
-{% block header %}
+{% extends "base.html" %} {% load static %} {% block head_extra %}
+<link rel="stylesheet" href="{% static 'potatochip/css/quiz.css' %}"> {% endblock %} {% block title %}{{ quiz.title }}{%
+endblock %} {% block body %} {% block header %}
 <div class="nav-buttons">
     <button type="submit" class="invis">About</button>
     <button type="submit" class="invis">Home</button>
@@ -29,6 +21,9 @@
     <form class="quiz-header" action="{% url 'join' %}" method="get">
         <button type="submit">Join a Quiz</button>
     </form>
+    <form class="quiz-header" action="{% url 'search' %}" method="get">
+        <button type="submit">Search for a Quiz</button>
+    </form>
     <form class="quiz-header" action="{% url 'logout' %}" method="post">
         {% csrf_token %}
         <button type="submit" class="sign-out">Sign out</button>
@@ -39,19 +34,13 @@
 <div class="main">
     <h1>{{ quiz.title }}</h1>
     <p>
-        Creator:
-        {% if quiz.creator %}
-        {{ quiz.creator.username|default:quiz.creator }}
-        {% else %}
-        Unknown
-        {% endif %}
+        Creator: {% if quiz.creator %} {{ quiz.creator.username|default:quiz.creator }} {% else %} Unknown {% endif %}
     </p>
     <p>Number of Questions: {{ quiz.questions.count }}</p>
     <ul>
         {% for question in quiz.questions.all %}
         <li>
-            Q{{ question.order }}: {{ question.text }}
-            {% for choice in question.choices.all %}
+            Q{{ question.order }}: {{ question.text }} {% for choice in question.choices.all %}
             <ul>
                 <li>{{ choice.order }}. {{ choice.text }}</li>
             </ul>
@@ -82,15 +71,13 @@
         }
 
         function getCookie(name) {
-            return document.cookie.split(';')
-                .find(c => c.trim().startsWith(name + '='))
-                ?.split('=')[1];
+            var cookie = document.cookie.split(';')
+                .find(c => c.trim().startsWith(name + '='));
+            return cookie ? cookie.split('=')[1] : null;
         }
-
     </script>
-    <button onclick="create_quiz()">Host this quiz!</button>
-    <button onclick="window.location.href = '/create/{{ quiz.id }}'">Edit this quiz!</button>
-
+    <button onclick="create_quiz()">Host this quiz!</button> {% if user.is_authenticated and user == quiz.creator %}
+    <button onclick="window.location.href = '/create/{{ quiz.id }}'">Edit this quiz!</button> {% endif %}
     <div id="host"></div>
 </div>
 {% endblock %}

@@ -1,13 +1,5 @@
-{% extends "base.html" %}
-{% load static %}
-{% block head_extra %}
-<link rel="stylesheet" href="{% static 'potatochip/css/home.css' %}">{% endblock %}
-
-{% block title %}Create!{% endblock %}
-
-{% block body %}
-
-{% block header %}
+{% extends "base.html" %} {% load static %} {% block head_extra %}
+<link rel="stylesheet" href="{% static 'potatochip/css/home.css' %}">{% endblock %} {% block title %}Create!{% endblock %} {% block body %} {% block header %}
 <div class="nav-buttons">
     <button type="submit" class="invis">About</button>
     <button type="submit" class="invis">Home</button>
@@ -27,6 +19,9 @@
     </form>
     <form class="quiz-header" action="{% url 'join' %}" method="get">
         <button type="submit">Join a Quiz</button>
+    </form>
+    <form class="quiz-header" action="{% url 'search' %}" method="get">
+        <button type="submit">Search for a Quiz</button>
     </form>
     <form class="quiz-header" action="{% url 'logout' %}" method="post">
         {% csrf_token %}
@@ -56,17 +51,13 @@
     <div class="pagination">
         {% if page_obj.has_previous %}
         <a href="?page=1">&laquo; first</a>
-        <a href="?page={{ page_obj.previous_page_number }}">previous</a>
-        {% endif %}
+        <a href="?page={{ page_obj.previous_page_number }}">previous</a> {% endif %}
 
         <span class="page-info">
             Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-        </span>
-
-        {% if page_obj.has_next %}
+        </span> {% if page_obj.has_next %}
         <a href="?page={{ page_obj.next_page_number }}">next</a>
-        <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
-        {% endif %}
+        <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a> {% endif %}
     </div>
 </div>
 
@@ -87,11 +78,9 @@
     }
 
     function getCookie(name) {
-        return document.cookie.split(';')
-            .find(c => c.trim().startsWith(name + '='))
-            ?.split('=')[1];
+        var cookie = document.cookie.split(';')
+            .find(c => c.trim().startsWith(name + '='));
+        return cookie ? cookie.split('=')[1] : null;
     }
 </script>
-
-</div>
 {% endblock %}

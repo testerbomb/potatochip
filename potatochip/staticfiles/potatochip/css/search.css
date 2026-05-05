@@ -1,0 +1,95 @@
+.search-panel {
+    margin: 24px auto;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+}
+
+.search-panel input[type="text"] {
+    width: 40vw;
+    min-width: 220px;
+    padding: 8px 12px;
+    border: 2px solid #404464;
+    border-radius: 6px;
+    background-color: #fff;
+}
+
+.search-panel button {
+    padding: 8px 14px;
+    border-radius: 6px;
+    border: none;
+    background-color: #404464;
+    color: #fff;
+    cursor: pointer;
+}
+
+.results-container {
+    padding-bottom: 40px;
+    display: flex;
+    justify-content: center;
+}
+
+
+/* Grid that matches the home page quiz grid, centered and wrapping */
+
+.quiz-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    justify-content: center;
+    gap: 12px;
+    text-align: center;
+    width: 100%;
+    max-width: 1200px;
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+
+
+/* Card look copied from home.css (.quiz-box) */
+
+.quiz-box {
+    display: block;
+    text-align: center;
+    padding: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    text-decoration: none;
+    color: inherit;
+    font-family: "Sour Gummy", sans-serif;
+    color: #181925;
+    grid-column: auto;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(24, 25, 37, 0.08);
+    width: 100%;
+    min-height: 160px;
+    cursor: pointer;
+    background-clip: padding-box;
+}
+
+.quiz-box h2 {
+    margin: 0;
+    text-align: center;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.quiz-box p {
+    margin: 0;
+    text-align: center;
+}
+
+.quiz-text {
+    font-family: "Faculty Glyphic", sans-serif;
+    color: #181925;
+}
+
+@media (max-width: 900px) {
+    .quiz-grid {
+        grid-template-columns: repeat(2, minmax(200px, 1fr));
+    }
+}
+
+body {
+    background-color: var(--primary-bg);
+}

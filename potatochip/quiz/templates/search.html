@@ -1,0 +1,74 @@
+{% extends "base.html" %} {% load static %} {% block title %}Search{% endblock %} {% block head_extra %}
+<link rel="stylesheet" href="{% static 'potatochip/css/quiz.css' %}">
+<link rel="stylesheet" href="{% static 'potatochip/css/search.css' %}"> {% endblock %} {% block body %}
+<div class="nav-buttons">
+    <button type="submit" class="invis">About</button>
+    <button type="submit" class="invis">Home</button>
+    <button type="submit" class="invis">Join a Quiz</button>
+    <button type="submit" class="invis">Sign out</button>
+    <!-- if anyone has a better way to do this i am open to suggestions! -->
+
+    <div class="header-image">
+        <img src="{% static 'potatochip/img/logo-small.svg' %}" alt="PotatoChip!" height="40">
+    </div>
+
+    <form class="quiz-header" action="{% url 'about' %}" method="get">
+        <button type="submit" class="curr-page">About</button>
+    </form>
+    <form class="quiz-header" action="{% url 'home' %}" method="get">
+        <button type="submit">Home</button>
+    </form>
+    <form class="quiz-header" action="{% url 'join' %}" method="get">
+        <button type="submit">Join a Quiz</button>
+    </form>
+    <form class="quiz-header" action="{% url 'logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="sign-out">Sign out</button>
+    </form>
+</div>
+
+<div class="main">
+    <div class="search-panel">
+        <input id="search-input" type="text" placeholder="Search quizzes by title or creator" />
+        <button id="search-btn" type="button" onclick="searchQuizzes()">Search</button>
+    </div>
+
+    <div id="results" class="results-container">
+        <div id="results-grid" class="quiz-grid"></div>
+    </div>
+
+    <script>
+        function searchQuizzes() {
+            const q = document.getElementById('search-input').value;
+            fetch(`/api/quiz/?q=${encodeURIComponent(q)}`)
+                .then(res => res.json())
+                .then(data => {
+                    const grid = document.getElementById('results-grid');
+                    grid.innerHTML = '';
+                    const quizzes = Array.isArray(data) ? data : (data.results || []);
+                    if (quizzes.length === 0) {
+                        grid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center;">No quizzes found.</p>';
+                    } else {
+                        quizzes.forEach(quiz => appendQuizCard(quiz));
+                    }
+                })
+                .catch(err => {
+                    console.error('Search error', err);
+                });
+        }
+
+        function appendQuizCard(quiz) {
+            const container = document.getElementById('results-grid');
+            const card = document.createElement('a');
+            card.className = 'quiz-box';
+            card.href = quiz.id ? `/quiz/${quiz.id}` : '#';
+
+            const title = document.createElement('h2');
+            title.textContent = quiz.title || 'Untitled Quiz';
+            card.appendChild(title);
+
+            container.appendChild(card);
+        }
+    </script>
+</div>
+{% endblock %}
