@@ -1,0 +1,74 @@
+Potato chip:
+    A free hosted quiz platform with participent clicker like voting.
+    Other Hosted quiz platforms have become cluttered and interesting features behind a paywall
+    making it less accesible to people who need it.
+
+
+USERS
+    Host: They should know the material that they would like to make a quiz out of
+    access to a visible view for participents to see, the idea is that the actual participent
+    view on thier devies will be unclutterd and show only simple answer choices. This will help hosts becuase there
+    are several features on other platforms that require a paywall.
+
+    Students/participents: The ui/ux for these users will be the priority we need to make it the most fun and accesible as possible
+    we want to engage the students. ex. fast and easy room joining, simple clicker style interface, responsive answer submissions.
+
+
+FEATURES
+    Hosts should be able to create a quiz with multiple styles of quiz questions, that will switch up the formula and engage participents
+    Hosts should be able to host the quiz and allow participents to join the room.
+    participents should be able to join a quiz and participent by intereacting with the quiz question type
+
+    A teacher wants to hosts a quiz, they go to our website and sign into their account. They make a quiz by writing the question
+    and answers they can save this quiz to our database. They then host the quize a room code is created and participents type in a display
+    name and the room code. They get connected to the quiz and the teacher may start it. The question is shown on the teacher's view and students 
+    choose the appropriate choice on theirs. Results are shown at the end showing the students scores based on correct answers and time 
+    till they answered.
+
+
+Hosts:
+Create Read Update and Delete accounts, quizes, Room instances.
+
+Paricipents:
+Create Read Update quiz answers, display names, their scores.
+
+
+Models:
+    Quiz:
+        meta data such as title creator tags
+        one to many questions
+    Quiz Questions:
+        foreign key Quiz
+        order
+        Answer choices
+        Correct answer
+    Quiz Instance:
+        quiz
+        host
+        participents
+        current question
+        participents mapped to scores
+        timer for this question
+        
+
+Users can create and read quiz templates but they can only update and delete templates they create.
+This template data will be stored in a quiz_template object with a one-to-many relationship with users. 
+It will contain values like ID, Name, Theme, Questions, Type.
+
+
+
+https://w3.cs.jmu.edu/cs347/s26/project/implementation/
+
+teacher/Hosts view:
+main menu to enter host quiz mode
+quiz generator window
+user score history/stats
+host quiz window
+
+user view:
+main menu to enter join quiz code
+quiz
+
+content/theme
+multiple choice or written or variety
+# questions

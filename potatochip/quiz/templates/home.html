@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% load static %}
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'potatochip/css/home.css' %}">{% endblock %}
+
+{% block title %}Create!{% endblock %}
+
+{% block body %}
+
+{% block header %}
+<div class="nav-buttons">
+    <button type="submit" class="invis">About</button>
+    <button type="submit" class="invis">Home</button>
+    <button type="submit" class="invis">Join a Quiz</button>
+    <button type="submit" class="invis">Sign out</button>
+    <!-- if anyone has a better way to do this i am open to suggestions! -->
+
+    <div class="header-image">
+        <img src="{% static 'potatochip/img/logo-small.svg' %}" alt="PotatoChip!" height="40">
+    </div>
+
+    <form class="quiz-header" action="{% url 'about' %}" method="get">
+        <button type="submit">About</button>
+    </form>
+    <form class="quiz-header" action="{% url 'home' %}" method="get">
+        <button type="submit" class="curr-page">Home</button>
+    </form>
+    <form class="quiz-header" action="{% url 'join' %}" method="get">
+        <button type="submit">Join a Quiz</button>
+    </form>
+    <form class="quiz-header" action="{% url 'logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="sign-out">Sign out</button>
+    </form>
+</div>
+{% endblock %}
+
+<div class="main">
+    <h1 class="quiz-box">Create or Host Your Quiz!</h1>
+    <div class="quiz-grid">
+        {% for quiz in page_obj %}
+        <a class="quiz-buttons" href="{% url 'quiz_detail' quiz.id %}">
+            <h2>{{ quiz.title }}</h2>
+            {% if quiz.description %}
+            <p>{{ quiz.description|truncatechars:120 }}</p>
+            {% endif %}
+        </a>
+
+        {% empty %}
+        <p class="quiz-text">No quizzes available yet.</p>
+        {% endfor %}
+        <button class="create" onclick="create_new_quiz()">+</button>
+    </div>
+
+    <!-- Pagination Controls -->
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+        <a href="?page=1">&laquo; first</a>
+        <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="page-info">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    function create_new_quiz() {
+        fetch("/api/create/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken")
+            },
+        }).then(res => res.json()).then(
+            data => {
+                console.log(data);
+                window.location.href = `/create/${data.id}`
+            }
+        )
+    }
+
+    function getCookie(name) {
+        return document.cookie.split(';')
+            .find(c => c.trim().startsWith(name + '='))
+            ?.split('=')[1];
+    }
+</script>
+
+</div>
+{% endblock %}

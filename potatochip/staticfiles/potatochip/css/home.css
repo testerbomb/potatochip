@@ -1,0 +1,147 @@
+.quiz-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(240px, 1fr));
+    justify-content: center;
+    gap: 12px;
+    text-align: center;
+    width: 100%;
+}
+
+.main {
+    display: grid;
+    justify-content: center;
+    margin: 20px auto;
+    padding: 20px;
+    gap: 16px;
+
+    border: 10px solid var(--button-fg);
+    border-radius: 10px;
+    justify-self: center;
+    width: min(1100px, 85vw);
+    background-color: #DADBE7;
+}
+
+body {
+    background-color: var(--primary-bg);
+}
+
+
+
+.quiz-box {
+    display: block;
+    text-align: center;
+    padding: 16px;
+    border: 1px solid #ddd;
+    text-decoration: none;
+    color: inherit;
+    font-family: "Sour Gummy", sans-serif;
+    color: #181925;
+    grid-column: 1 / -1;
+}
+
+.quiz-buttons:hover,
+create:hover {
+    filter: brightness(0.40);
+}
+
+.create {
+    display: grid;
+    place-items: center;
+    background-color: #ffffff;
+    /* card background */
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(24, 25, 37, 0.08);
+    text-decoration: none;
+    color: inherit;
+    font-family: "Sour Gummy", sans-serif;
+    width: 100%;
+    min-width: 0;
+    min-height: 160px;
+    cursor: pointer;
+    background-clip: padding-box;
+    content: "+";
+    color: #000;
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+
+
+
+
+
+.quiz-buttons {
+    display: grid;
+    place-items: center;
+    background-color: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(24, 25, 37, 0.08);
+    text-decoration: none;
+    color: inherit;
+    font-family: "Sour Gummy", sans-serif;
+    width: 100%;
+    min-width: 0;
+    min-height: 160px;
+    cursor: pointer;
+    background-clip: padding-box;
+}
+
+.quiz-header {
+    text-align: right;
+    margin: 20px;
+}
+
+/* Pagination Styles */
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    align-items: center;
+    grid-column: 1 / -1;
+    margin-top: 20px;
+}
+
+.pagination a {
+    padding: 8px 12px;
+    background-color: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 4px;
+    text-decoration: none;
+    color: #181925;
+    cursor: pointer;
+    font-family: "Sour Gummy", sans-serif;
+    transition: all 0.3s ease;
+}
+
+.pagination a:hover {
+    background-color: #f0f0f0;
+    box-shadow: 0 2px 4px rgba(24, 25, 37, 0.08);
+}
+
+.page-info {
+    font-family: "Sour Gummy", sans-serif;
+    color: #181925;
+}
+
+.quiz-box h2 {
+    margin: 0 0 8px;
+}
+
+.quiz-box p {
+    margin: 0;
+}
+
+.quiz-text {
+    font-family: "Faculty Glyphic", sans-serif;
+    color: #181925;
+}
+
+/* responsive layout */
+@media (max-width: 900px) {
+    .quiz-grid {
+        grid-template-columns: repeat(2, minmax(200px, 1fr));
+    }
+}

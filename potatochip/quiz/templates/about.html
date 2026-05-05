@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}About{% endblock %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'potatochip/css/about.css' %}">
+{% endblock %}
+
+{% block body %}
+{% block header %}
+<div class="nav-buttons">
+    <button type="submit" class="invis">About</button>
+    <button type="submit" class="invis">Home</button>
+    <button type="submit" class="invis">Join a Quiz</button>
+    <button type="submit" class="invis">Sign out</button>
+    <!-- if anyone has a better way to do this i am open to suggestions! -->
+
+    <div class="header-image">
+        <img src="{% static 'potatochip/img/logo-small.svg' %}" alt="PotatoChip!" height="40">
+    </div>
+
+    <form class="quiz-header" action="{% url 'about' %}" method="get">
+        <button type="submit" class="curr-page">About</button>
+    </form>
+    <form class="quiz-header" action="{% url 'home' %}" method="get">
+        <button type="submit">Home</button>
+    </form>
+    <form class="quiz-header" action="{% url 'join' %}" method="get">
+        <button type="submit">Join a Quiz</button>
+    </form>
+    <form class="quiz-header" action="{% url 'logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="sign-out">Sign out</button>
+    </form>
+</div>
+{% endblock %}
+
+<div class="main">
+    <h1>About PotatoChip</h1>
+    <p>PotatoChip is an interactive quiz application built with Django, designed to make learning and testing
+        knowledge
+        fun and engaging. Whether you're a teacher creating quizzes for your students, a student joining a quiz
+        session,
+        or just someone who loves trivia, PotatoChip has you covered!</p>
+
+    <h2>Features</h2>
+    <ul>
+        <li><strong>Create Custom Quizzes:</strong> Design your own quizzes with multiple-choice questions. Set up
+            questions, choices, and correct answers easily through our intuitive interface.</li>
+        <li><strong>Join Live Quizzes:</strong> Enter a 6-digit quiz code to join an active quiz session. Answer
+            questions in real-time and see your results instantly.</li>
+        <li><strong>Real-Time Interaction:</strong> Powered by Django Channels and WebSockets, PotatoChip provides
+            live
+            updates during quiz sessions, making it perfect for classrooms or group activities.</li>
+        <li><strong>User Authentication:</strong> Secure login and registration system to manage your quizzes and
+            track
+            your participation.</li>
+        <li><strong>Responsive Design:</strong> Designed for seamlessly use on both desktop and mobile devices.</li>
+    </ul>
+
+    <h2>How to Use</h2>
+    <ol>
+        <li><strong>Sign Up:</strong> Create an account to start creating and joining quizzes.</li>
+        <li><strong>Create a Quiz:</strong> Click "Create a Quiz" to build your quiz. Add questions with multiple
+            choices and mark the correct answers.</li>
+        <li><strong>Host Your Quiz:</strong> Once created, get a unique quiz code to share with participants.</li>
+        <li><strong>Join a Quiz:</strong> Enter the 6-digit code on the "Join a Quiz" page to participate.</li>
+        <li><strong>Enjoy:</strong> Answer questions as they appear and see your score at the end!</li>
+    </ol>
+
+    <h2>Technology Stack</h2>
+    <p>PotatoChip is built using modern web technologies:</p>
+    <ul>
+        <li><strong>Backend:</strong> Django (Python web framework)</li>
+        <li><strong>Database:</strong> SQLite (for development), easily configurable for PostgreSQL in production
+        </li>
+        <li><strong>Real-Time Features:</strong> Django Channels with Redis</li>
+        <li><strong>Frontend:</strong> HTML, CSS, JavaScript with Bootstrap for styling</li>
+        <li><strong>Deployment:</strong> Deployed on Digital Ocean</li>
+    </ul>
+
+    <h2>About the Name</h2>
+    <p>PotatoChip is named after the adorable American Goldfinch which is known to have a call that sounds like "Po
+        ta
+        to chip". <em>(Spoiler: their call sounds nothing like that)</em></p>
+
+</div>
+{% endblock %}

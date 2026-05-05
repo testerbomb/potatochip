@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% load static %}
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'potatochip/css/host.css' %}">{% endblock %}
+
+{% block content %}
+
+
+<div class="root-container">
+    <div id="participants-view">
+        <div class="join-container">
+            <div class="join-code">
+                <h1 class="header-content join-header">Join Code:</h1>
+                <h1 id="join-digits">{{ instance.code }}</h1>
+            </div>
+            <img id="qr-code" src="https://quickchart.io/qr?text=${{ join_url }}&size=300">
+        </div>
+        <button class="start-quiz" onclick="startquiz()">Start Your Quiz</button>
+
+        <hr>
+        <h2>Participants:</h2>
+        <ul id="participant-list"></ul>
+    </div>
+
+    <div id="question-view" style="display:none">
+        <h1>{{ instance.quiz.title}}</h1>
+        <div class="round-time-bar" data-style="smooth" style="--duration: 30;">
+            <div></div>
+        </div>
+        <h2 id="question-text">QUESTION TITLE</h2>
+        <ul id="answer-choices">
+        </ul>
+    </div>
+
+    <div id="question-report" style="display:none">
+        <h2>Question Report</h2>
+        <div id="report-graph" aria-label="Question report graph"></div>
+        <button id="advance-btn" type="button" onclick="advanceQuestion()">
+            Next Question
+        </button>
+    </div>
+
+    <div id="final-view" style="display:none">
+        <h3><button onclick="window.location.href='{% url 'home' %}'">Return Home</button></h3>
+        <h2>Final Leaderboard</h2>
+        <ol id="leaderboard-list"></ol>
+    </div>
+</div>
+<script>
+    let participant_view = document.getElementById("participants-view");
+    let question_view = document.getElementById("question-view");
+    let report_view = document.getElementById("question-report");
+    let report_graph = document.getElementById("report-graph");
+    let final_view = document.getElementById("final-view");
+    let leaderboard_list = document.getElementById("leaderboard-list");
+    let question_prompt = document.getElementById("question-text");
+    let choices = document.getElementById("answer-choices");
+    let currentQuestion = null;
+    const bar = document.querySelector(".round-time-bar");
+
+    function renderQuestionReport(counts) {
+        if (!counts || counts.length === 0) {
+            return;
+        }
+
+        let maxCount = 0;
+        for (const count of counts) {
+            if (count > maxCount) {
+                maxCount = count;
+            }
+        }
+
+        report_graph.innerHTML = "";
+        for (let i = 0; i < counts.length; i++) {
+            const count = counts[i];
+            const bar = document.createElement("div");
+            bar.className = "graph-bar";
+            const heightPct = maxCount > 0
+                ? Math.max(25, Math.round((count / maxCount) * 100))
+                : 25;
+            bar.style.height = `${heightPct}%`;
+            const choiceText = currentQuestion?.choices?.[i]?.text || `Choice ${i + 1}`;
+            bar.textContent = `${choiceText} (${count})`;
+            report_graph.appendChild(bar);
+        }
+    }
+
+    function startquiz() {
+        socket.send(JSON.stringify({
+            type: "start-quiz",
+        }))
+    }
+
+    function advanceQuestion() {
+        socket.send(JSON.stringify({
+            type: "advance-question",
+        }))
+    }
+
+    function renderLeaderboard(leaderboard) {
+        const body = document.querySelector("body");
+        body.style.display = "flex";
+        body.style.flexDirection = "column";
+        body.style.alignItems = "center";
+        body.style.justifyContent = "center";
+        body.style.textAlign = "center";
+        body.style.minHeight = "100vh";
+        leaderboard_list.innerHTML = "";
+        for (const entry of (leaderboard || [])) {
+            const item = document.createElement("li");
+            item.textContent = `${entry.name}: ${entry.score}`;
+            leaderboard_list.appendChild(item);
+        }
+    }
+
+    function create_room() {
+        const wsScheme = window.location.protocol === 'https:' ? 'wss://' : 'ws://'
+        socket = new WebSocket(`${wsScheme}${window.location.host}/ws/lobby/{{ instance.code }}/`)
+        socket.onmessage = (e) => {
+            const data = JSON.parse(e.data)
+            console.log(data);
+            if (data.type === 'participant_joined') {
+                const li = document.createElement('li')
+                li.textContent = data.screen_name
+                document.getElementById('participant-list').appendChild(li)
+            }
+
+            if (data.type === 'advance_question') {
+                const question = data.question;
+                currentQuestion = question;
+                participant_view.style.display = 'none'
+                report_view.style.display = 'none'
+                final_view.style.display = 'none'
+                question_view.style.display = 'block'
+                question_prompt.innerHTML = question.text;
+                let list = ""
+                for (const choice of question.choices) {
+                    list += `<li>${choice.text}</li>`
+                }
+                choices.innerHTML = list;
+                bar.classList.remove("round-time-bar");
+                bar.offsetWidth;
+                bar.classList.add("round-time-bar");
+            }
+
+            if (data.type === 'end_question') {
+                question_view.style.display = 'none'
+                report_view.style.display = 'block'
+                renderQuestionReport(data.counts)
+            }
+
+            if (data.type === 'quiz_complete') {
+                participant_view.style.display = 'none'
+                question_view.style.display = 'none'
+                report_view.style.display = 'none'
+                renderLeaderboard(data.leaderboard)
+                final_view.style.display = 'block'
+            }
+
+            if (data.type === 'error') {
+                alert(data.message)
+            }
+        }
+    }
+    document.addEventListener("DOMContentLoaded", create_room)
+</script>
+{% endblock %}

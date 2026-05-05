@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}
+Join!
+{% endblock %}
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'potatochip/css/join.css' %}">
+{% endblock %}
+
+{% block content %}
+{% block header %}
+<div class="nav-buttons">
+    <button type="submit" class="invis">About</button>
+    <button type="submit" class="invis">Home</button>
+    <button type="submit" class="invis">Join a Quiz</button>
+    <button type="submit" class="invis">Sign out</button>
+    <!-- if anyone has a better way to do this i am open to suggestions! -->
+
+    <div class="header-image">
+        <img src="{% static 'potatochip/img/logo-small.svg' %}" alt="PotatoChip!" height="40">
+    </div>
+
+    <form class="quiz-header" action="{% url 'about' %}" method="get">
+        <button type="submit">About</button>
+    </form>
+    <form class="quiz-header" action="{% url 'home' %}" method="get">
+        <button type="submit">Home</button>
+    </form>
+    <form class="quiz-header" action="{% url 'join' %}" method="get">
+        <button type="submit" class="curr-page">Join a Quiz</button>
+    </form>
+    <form class="quiz-header" action="{% url 'logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="sign-out">Sign out</button>
+    </form>
+</div>
+{% endblock %}
+<div class="join-grid">
+    <h1 class="join-header">Join a Quiz!</h1>
+
+    <form class="join-input" onsubmit="handleJoin(event)">
+        <div class="row form-border form-row">
+            <label for="code" class="col col-4 id">6-digit ID</label>
+            <input type="text" id="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" minlength="6" required
+                placeholder="123456" class="col">
+        </div>
+        <div class="row form-row">
+            <button type="submit" class="col col-5 join-quiz">Join!</button>
+        </div>
+    </form>
+
+    <script>
+        function handleJoin(e) {
+            e.preventDefault()
+            const code = document.getElementById('code').value
+            window.location.href = `/join/${code}/`
+        }
+    </script>
+</div>
+{% endblock %}

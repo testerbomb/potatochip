@@ -1,0 +1,33 @@
+.join-grid {
+    display: grid;
+    justify-content: center;
+    margin: 20px;
+    padding: 20px;
+    gap: 16px;
+
+    border: 10px solid #404464;
+    border-radius: 10px;
+    justify-self: center;
+    width: 50vw;
+    background-color: #DADBE7;
+}
+
+body {
+    background-color: var(--primary-bg);
+}
+
+h1 {
+    text-align: center;
+    color: #181925;
+}
+
+.main {
+    margin: 20px auto;
+    padding: 20px;
+    gap: 16px;
+
+    border: 10px solid #404464;
+    border-radius: 10px;
+    width: 50vw;
+    background-color: #DADBE7;
+}

@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+{% load static %}
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'potatochip/css/lobby.css' %}">{% endblock %}
+{% block content %}
+
+
+<div class="status-bar" style="display:none;">
+    <h1 id="header-screen-name"></h1>
+    <h1 id="curr-score"></h1>
+</div>
+<div class="root-container"></div>
+<div class="view" id="default-container">
+    <h1>{{ instance.quiz.title }}</h1>
+    <h2>Enter your Screen Name:</h2>
+    <form id="display_name" onsubmit="submit_name(); return false;">
+        {% csrf_token %}
+        <input type="text" name="screen_name" placeholder="Screen Name" required>
+        <button type="submit">Enter</button>
+    </form>
+</div>
+<div class="view" id="waiting-view" style="display:none">
+    <p>Joined as <strong id="screen-name">None</strong></p>
+    <h2>Quiz has not started yet</h2>
+</div>
+<div class="view" id="submitted-view" style="display:none">
+    <h1>You have submitted. I believe in you!</h1>
+</div>
+
+<div class="view" id="question-report" style="display:none">
+    <h1 id="correct">CORRECT?</h1>
+    <h2 id="points">0000</h2>
+</div>
+
+<div class="view" id="final" style="display:none">
+    <h1>Good Job!</h1>
+    <p>You got <span id="points">0000</span></p>
+</div>
+
+<div class="view" id="question-view" style="display:none">
+    <ul id="choices"></ul>
+</div>
+</div>
+
+<script>
+    let screenName;
+    const currentQuizCode = '{{ instance.code }}';
+    let participantId = sessionStorage.getItem('participant_id');
+    let views = document.querySelectorAll(".view");
+    let screen_name_display = document.getElementById('screen-name');
+    let waiting_view = document.getElementById('waiting-view');
+    let landing_view = document.getElementById('default-container');
+    let choices_view = document.getElementById('choices');
+    let submitted_view = document.getElementById('submitted-view');
+    let report_view = document.getElementById('question-report');
+    let final_view = document.getElementById('final');
+    let final_points = document.querySelector('#final span');
+    let status_bar = document.querySelector('.status-bar');
+    let header_screen_name = document.querySelector('#header-screen-name');
+    let curr_score = document.querySelector('#curr-score');
+    let score_number = 0
+    let SUBMITTED = false;
+
+    function setStatusBar(name, score) {
+        header_screen_name.textContent = name || '';
+        curr_score.textContent = String(score ?? 0);
+        status_bar.style.display = 'flex';
+    }
+
+    function create_socket() {
+        const wsScheme = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+        socket = new WebSocket(`${wsScheme}${window.location.host}/ws/lobby/{{ instance.code }}/`);
+        socket.onopen = () => {
+            console.log('connected')
+            try_resume();
+        }
+        socket.onmessage = (e) => {
+
+            const data = JSON.parse(e.data)
+            console.log(data)
+            if (data.type === 'participant_joined' && data.participant_id) {
+                sessionStorage.setItem('participant_id', data.participant_id);
+                participantId = data.participant_id;
+                sessionStorage.setItem('quiz_code', currentQuizCode);
+                screen_name_display.innerHTML = `${screenName}`;
+                score_number = 0;
+                setStatusBar(screenName, score_number);
+                for (const view of views) {
+                    view.style.display = 'none';
+                }
+
+                waiting_view.style.display = 'block';
+            }
+
+            if (data.type === "advance_question") {
+                hide_views();
+                render_choices(data.question.choices);
+                SUBMITTED = false;
+                document.getElementById('question-view').style.display = 'block'
+            }
+
+            if (data.type === "resume_success") {
+                hide_views();
+                screenName = data.name;
+                screen_name_display.innerHTML = `${screenName}`;
+                if (data.participant_id) {
+                    sessionStorage.setItem('participant_id', data.participant_id);
+                    participantId = data.participant_id;
+                }
+
+                setStatusBar(screenName, score_number);
+
+                if (data.resume_state === 'question' && data.question) {
+                    render_choices(data.question.choices);
+                    document.getElementById('question-view').style.display = 'block'
+                }
+                else if (data.resume_state === 'submitted') {
+                    SUBMITTED = true;
+                    submitted_view.style.display = 'block';
+                }
+                else {
+                    waiting_view.style.display = 'block';
+                }
+            }
+
+            if (data.type == "answer_grade") {
+                SUBMITTED = true;
+                handle_answer_grade(data);
+            }
+
+            if (data.type == "end_question") {
+                if (!SUBMITTED) {
+                    handle_answer_grade({ correct: false, points: 0 })
+                }
+            }
+
+            if (data.type === "quiz_complete") {
+                hide_views();
+                let myScore = 0;
+                for (const entry of (data.leaderboard || [])) {
+                    if (String(entry.id) === String(participantId)) {
+                        myScore = entry.score;
+                        break;
+                    }
+                }
+                final_points.textContent = String(myScore);
+                final_view.style.display = 'block';
+            }
+        }
+        socket.onclose = () => console.log('disconnected')
+    }
+
+    function handle_answer_grade(data) {
+        hide_views();
+        const correctEl = document.getElementById('correct');
+        const pointsEl = document.getElementById('points');
+        correctEl.textContent = data.correct ? 'Correct' : 'Incorrect';
+        pointsEl.textContent = String(data.points);
+        score_number += data.points
+        curr_score.innerHTML = String(score_number);
+        report_view.style.display = 'block';
+    }
+
+    function render_choices(choices) {
+        choices_view.innerHTML = '';
+
+        for (const choice of choices) {
+            const item = document.createElement('li');
+            const button = document.createElement('button');
+            item.addEventListener('click', () => handle_choice(choice.text));
+            item.textContent = choice.text
+            choices_view.appendChild(item);
+        }
+    }
+
+    function handle_choice(choice) {
+        // we will ignore the two generals problem
+
+        socket.send(JSON.stringify({
+            type: 'answer_submit',
+            answer_choice: choice,
+            timestamp: getTimestamp(),
+            id: participantId
+        }))
+        hide_views()
+        submitted_view.style.display = 'block'
+    }
+
+    function getTimestamp() {
+        return new Date().toLocaleString();
+    }
+    function hide_views() {
+        for (const view of views) {
+            view.style.display = 'none';
+        }
+    }
+
+    function submit_name() {
+        screenName = document.querySelector('input[name="screen_name"]').value;
+        socket.send(JSON.stringify({
+            type: 'participant_join',
+            screen_name: screenName
+        }))
+    }
+
+    function try_resume() {
+        const storedQuizCode = sessionStorage.getItem('quiz_code');
+        participantId = participantId || sessionStorage.getItem('participant_id');
+        const storedParticipantId = participantId;
+
+        if (storedQuizCode !== currentQuizCode || !storedParticipantId) {
+            return;
+        }
+        console.log("sending");
+        socket.send(JSON.stringify({
+            type: 'participant_resume',
+            participant_id: storedParticipantId,
+            quiz_code: storedQuizCode,
+        }))
+    }
+
+    document.addEventListener("DOMContentLoaded", create_socket)
+</script>
+
+{% endblock %}

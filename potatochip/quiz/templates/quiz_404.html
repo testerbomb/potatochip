@@ -1,0 +1,9 @@
+{% extends "base.html" %} {% load static %} {% block head_extra %}
+<link rel="stylesheet" href="{% static 'potatochip/css/404.css' %}"> {% endblock %} {% block body %}
+<div class="box">
+    <h1>404</h1>
+    <p>The quiz you were expcting to join may be over or not exist!</p>
+    <button type="button" onclick="location.href='{% url 'join' %}'">Back to Join</button>
+    <button type="button" onclick="location.href='{% url 'home' %}'">Home</button>
+</div>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'potatochip/css/quiz.css' %}">
+{% endblock %}
+
+{% block title %}{{ quiz.title }}{% endblock %}
+
+{% block body %}
+{% block header %}
+<div class="nav-buttons">
+    <button type="submit" class="invis">About</button>
+    <button type="submit" class="invis">Home</button>
+    <button type="submit" class="invis">Join a Quiz</button>
+    <button type="submit" class="invis">Sign out</button>
+    <!-- if anyone has a better way to do this i am open to suggestions! -->
+
+    <div class="header-image">
+        <img src="{% static 'potatochip/img/logo-small.svg' %}" alt="PotatoChip!" height="40">
+    </div>
+
+    <form class="quiz-header" action="{% url 'about' %}" method="get">
+        <button type="submit" class="curr-page">About</button>
+    </form>
+    <form class="quiz-header" action="{% url 'home' %}" method="get">
+        <button type="submit">Home</button>
+    </form>
+    <form class="quiz-header" action="{% url 'join' %}" method="get">
+        <button type="submit">Join a Quiz</button>
+    </form>
+    <form class="quiz-header" action="{% url 'logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="sign-out">Sign out</button>
+    </form>
+</div>
+{% endblock %}
+
+<div class="main">
+    <h1>{{ quiz.title }}</h1>
+    <p>
+        Creator:
+        {% if quiz.creator %}
+        {{ quiz.creator.username|default:quiz.creator }}
+        {% else %}
+        Unknown
+        {% endif %}
+    </p>
+    <p>Number of Questions: {{ quiz.questions.count }}</p>
+    <ul>
+        {% for question in quiz.questions.all %}
+        <li>
+            Q{{ question.order }}: {{ question.text }}
+            {% for choice in question.choices.all %}
+            <ul>
+                <li>{{ choice.order }}. {{ choice.text }}</li>
+            </ul>
+            {% endfor %}
+        </li>
+        {% endfor %}
+    </ul>
+
+    <script>
+        function create_quiz() {
+            fetch("/api/host/{{ quiz.id }}/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken")
+                },
+            })
+                .then(res => res.json())
+                .then(data => {
+                    //TODO redirection
+                    console.log(data)
+                    host = document.getElementById("host")
+                    host.innerHTML = data.code
+                    window.location.href = `/host/${data.code}/`
+                })
+
+
+        }
+
+        function getCookie(name) {
+            return document.cookie.split(';')
+                .find(c => c.trim().startsWith(name + '='))
+                ?.split('=')[1];
+        }
+
+    </script>
+    <button onclick="create_quiz()">Host this quiz!</button>
+    <button onclick="window.location.href = '/create/{{ quiz.id }}'">Edit this quiz!</button>
+
+    <div id="host"></div>
+</div>
+{% endblock %}

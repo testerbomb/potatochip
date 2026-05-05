@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load static %}
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'potatochip/css/login.css' %}">
+{% endblock %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+
+<div class="box">
+    <div class="logo">
+        <img src="{% static 'potatochip/img/logo-main.svg' %}" width="300"
+            alt="A goldfinch saying the words 'Potato Chip!'">
+    </div>
+
+    {% if form.errors %}
+    <p>Your username and password didn't match. Please try again.</p>
+    {% endif %}
+
+    {% if next %}
+    {% if user.is_authenticated %}
+    <p class="login-info">Your account doesn't have access to this page. To proceed,
+        please login with an account that has access.</p>
+    {% else %}
+    <p class="login-info">Please login to see this page.</p>
+    {% endif %}
+    {% endif %}
+
+    <form method="post" action="{% url 'login' %}" class="container">
+        {% csrf_token %}
+        <div class="row space">
+            <div class="col">{{form.username.label_tag}}</div>
+            <div class="col">{{form.username}}</div>
+        </div>
+        <div class="row space">
+            <div class="col">{{form.password.label_tag}}</div>
+            <div class="col">{{form.password}}</div>
+        </div>
+        <div class="row">
+            <button type="submit" value="login" class="space">Login</button>
+            <input type="hidden" name="next" value="{{ next }}">
+        </div>
+    </form>
+    {# Assumes you set up the password_reset view in your URLConf #}
+    <p class="create-account"><a href="{% url 'register' %}">Create an account</a> • <a
+            href="{% url 'password_reset' %}">Lost password?</a>
+    </p>
+</div>
+
+{% endblock %}

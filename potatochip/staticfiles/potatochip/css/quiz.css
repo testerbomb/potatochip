@@ -1,0 +1,32 @@
+.main {
+    margin-top: 80px;
+    padding-bottom: 12px;
+    text-align: center;
+    list-style-position: inside;
+    border: 10px solid var(--button-fg);
+    border-radius: 10px;
+    background-color: rgb(218, 219, 231);
+    padding: 5px 20px;
+    box-sizing: border-box;
+    width: fit-content;
+}
+
+.main {
+    margin: 20px auto;
+    padding: 20px;
+    gap: 16px;
+
+    border: 10px solid #404464;
+    border-radius: 10px;
+    width: 50vw;
+    background-color: #DADBE7;
+}
+
+
+ul>li {
+    list-style: none;
+}
+
+body {
+    background-color: var(--primary-bg);
+}

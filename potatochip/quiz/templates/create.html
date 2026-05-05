@@ -1,0 +1,470 @@
+{% extends "base.html" %}
+{% load static %}
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'potatochip/css/create.css' %}">{% endblock %}
+
+{% block title %}Create Quiz{% endblock %}
+
+{% block body %}
+
+{% block header %}
+<div class="nav-buttons">
+    <button type="submit" class="invis">About</button>
+    <button type="submit" class="invis">Home</button>
+    <button type="submit" class="invis">Join a Quiz</button>
+    <button type="submit" class="invis">Sign out</button>
+    <!-- if anyone has a better way to do this i am open to suggestions! -->
+
+    <div class="header-image">
+        <img src="{% static 'potatochip/img/logo-small.svg' %}" alt="PotatoChip!" height="40">
+    </div>
+
+    <form class="quiz-header" action="{% url 'about' %}" method="get">
+        <button type="submit">About</button>
+    </form>
+    <!-- <form class="quiz-header" action="{% url 'home' %}" method="get">
+        <button type="submit" class="curr-page">Home</button>
+    </form> -->
+    <form class="quiz-header" action="{% url 'home' %}" method="get">
+        <button type="submit">Home</button>
+    </form>
+    <form class="quiz-header" action="{% url 'join' %}" method="get">
+        <button type="submit">Join a Quiz</button>
+    </form>
+    <form class="quiz-header" action="{% url 'logout' %}" method="post">
+        {% csrf_token %}
+        <button type="submit" class="sign-out">Sign out</button>
+    </form>
+</div>
+{% endblock %}
+
+<div class="main">
+    <div class="quiz-title editable-field">
+        <input id="quiz-title-input" type="text" placeholder="Quiz Title" />
+        <button id="delete-quiz-btn" type="button" class="delete-primary" title="Delete quiz">×</button>
+    </div>
+
+    <div class="question-text editable-field">
+        <input id="question-text-input" type="text" placeholder="Question" />
+        <button id="delete-question-btn" type="button" class="delete-primary" title="Delete question">×</button>
+    </div>
+
+    <div id="question-counter" class="question-counter">1/1</div>
+
+    <ul class="choices-list">
+        <li class="add-choice" onclick="addChoiceForCurrentQuestion()">+</li>
+    </ul>
+    <div class="tab-container">
+        <button id="prev-btn" type="button">Prev</button>
+        <button id="next-btn" type="button">Next</button>
+    </div>
+</div>
+
+<script>
+    const quizId = Number("{{ quiz_id|default:0 }}");
+    const quizTitleInput = document.getElementById("quiz-title-input");
+    const questionTextInput = document.getElementById("question-text-input");
+    const questionCounter = document.getElementById("question-counter");
+    const choicesList = document.querySelector(".choices-list");
+    const prevBtn = document.getElementById("prev-btn");
+    const nextBtn = document.getElementById("next-btn");
+    const deleteQuizBtn = document.getElementById("delete-quiz-btn");
+    const deleteQuestionBtn = document.getElementById("delete-question-btn");
+
+    const state = {
+        quizId,
+        title: "",
+        questions: [],
+        currentIndex: 0,
+    };
+
+    function getCookie(name) {
+        return document.cookie.split(';')
+            .find(c => c.trim().startsWith(name + '='))
+            ?.split('=')[1];
+    }
+
+    async function apiRequest(path, options = {}) {
+        const config = {
+            method: options.method || "GET",
+            headers: {
+                "Content-Type": "application/json",
+                ...options.headers,
+            },
+            credentials: "same-origin",
+        };
+
+        if (config.method !== "GET") {
+            config.headers["X-CSRFToken"] = getCookie("csrftoken");
+        }
+
+        if (options.body !== undefined) {
+            config.body = JSON.stringify(options.body);
+        }
+
+        const response = await fetch(path, config);
+        if (!response.ok) {
+            throw new Error(`Request failed (${response.status})`);
+        }
+
+        if (response.status === 204) {
+            return {};
+        }
+
+        return response.json();
+    }
+
+    function sortByOrder(items) {
+        return [...items].sort((a, b) => a.order - b.order || a.id - b.id);
+    }
+
+    function getCurrentQuestion() {
+        if (!state.questions.length) {
+            return null;
+        }
+        return state.questions[state.currentIndex];
+    }
+
+    function updateCounter() {
+        const total = state.questions.length || 1;
+        const current = state.questions.length ? state.currentIndex + 1 : 1;
+        questionCounter.textContent = `${current}/${total}`;
+    }
+
+    function updateNavButtons() {
+        prevBtn.disabled = state.currentIndex === 0;
+    }
+
+    async function saveQuizTitle() {
+        const title = quizTitleInput.value.trim();
+        await apiRequest(`/api/quiz/${state.quizId}/`, {
+            method: "PATCH",
+            body: { title },
+        });
+        state.title = title;
+    }
+
+    async function saveCurrentQuestion() {
+        const question = getCurrentQuestion();
+        if (!question) {
+            return;
+        }
+        const text = questionTextInput.value.trim();
+        const payload = {
+            text,
+            order: question.order,
+            question_type: question.question_type || "MC",
+        };
+        const updated = await apiRequest(`/api/questions/${question.id}/`, {
+            method: "PATCH",
+            body: payload,
+        });
+        question.text = updated.text;
+    }
+
+    function createToggleCircle(choice, input) {
+        const toggleButton = document.createElement("button");
+        toggleButton.type = "button";
+        toggleButton.className = "toggle-circle";
+        toggleButton.setAttribute("aria-pressed", "false");
+        toggleButton.title = "Mark correct answer";
+        toggleButton.dataset.toggled = "false";
+
+        const checkmark = document.createElement("span");
+        checkmark.className = "checkmark";
+        checkmark.textContent = "✓";
+        toggleButton.appendChild(checkmark);
+
+        if (choice.is_correct) {
+            toggleButton.dataset.toggled = "true";
+            toggleButton.setAttribute("aria-pressed", "true");
+            toggleButton.classList.add("toggled");
+        }
+
+        toggleButton.addEventListener("click", async function (event) {
+            event.stopPropagation();
+            const next = toggleButton.dataset.toggled !== "true";
+            toggleButton.dataset.toggled = String(next);
+            toggleButton.setAttribute("aria-pressed", String(next));
+            toggleButton.classList.toggle("toggled", next);
+            choice.is_correct = next;
+            await saveChoice(choice, input);
+        });
+
+        return toggleButton;
+    }
+
+    async function saveChoice(choice, inputElement) {
+        const question = getCurrentQuestion();
+        if (!question) {
+            return;
+        }
+
+        const payload = {
+            text: inputElement.value.trim(),
+            order: choice.order,
+            is_correct: !!choice.is_correct,
+        };
+
+        if (choice.id) {
+            const updated = await apiRequest(`/api/choices/${choice.id}/`, {
+                method: "PATCH",
+                body: payload,
+            });
+            choice.text = updated.text;
+            choice.order = updated.order ?? choice.order;
+            choice.is_correct = updated.is_correct;
+            return;
+        }
+
+        const created = await apiRequest(`/api/questions/${question.id}/choices/`, {
+            method: "POST",
+            body: payload,
+        });
+        choice.id = created.id;
+        choice.text = created.text;
+        choice.order = created.order ?? payload.order;
+        choice.is_correct = created.is_correct;
+    }
+
+    function buildChoiceItem(choice) {
+        const item = document.createElement("li");
+
+        const input = document.createElement("input");
+        input.type = "text";
+        input.name = "choice";
+        input.placeholder = "Answer Choice";
+        input.value = choice.text || "";
+        input.addEventListener("blur", async function () {
+            await saveChoice(choice, input);
+        });
+
+        const toggleButton = createToggleCircle(choice, input);
+
+        const deleteButton = document.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.className = "delete-choice";
+        deleteButton.textContent = "×";
+        deleteButton.addEventListener("click", async function (event) {
+            event.stopPropagation();
+            await deleteChoice(choice);
+        });
+
+        item.appendChild(toggleButton);
+        item.appendChild(input);
+        item.appendChild(deleteButton);
+
+        return item;
+    }
+
+    function renderChoices() {
+        const question = getCurrentQuestion();
+        choicesList.innerHTML = "";
+
+        if (!question) {
+            return;
+        }
+
+        question.choices = sortByOrder(question.choices || []);
+        question.choices.forEach(choice => {
+            choicesList.appendChild(buildChoiceItem(choice));
+        });
+
+        if (question.choices.length < 4) {
+            const plusItem = document.createElement("li");
+            plusItem.className = "add-choice";
+            plusItem.textContent = "+";
+            plusItem.onclick = addChoiceForCurrentQuestion;
+            choicesList.appendChild(plusItem);
+        }
+    }
+
+    function render() {
+        quizTitleInput.value = state.title || "";
+
+        const question = getCurrentQuestion();
+        questionTextInput.value = question ? (question.text || "") : "";
+
+        updateCounter();
+        updateNavButtons();
+        renderChoices();
+    }
+
+    async function loadQuiz() {
+        const data = await apiRequest(`/api/quiz/${state.quizId}/`);
+        state.title = data.title || "";
+        state.questions = sortByOrder(data.questions || []).map(question => ({
+            ...question,
+            choices: sortByOrder(question.choices || []),
+        }));
+
+        if (!state.questions.length) {
+            await createQuestion({ withDefaultChoices: false });
+            return;
+        }
+
+        if (state.currentIndex >= state.questions.length) {
+            state.currentIndex = state.questions.length - 1;
+        }
+
+        render();
+    }
+
+    async function createChoice(questionId, order, text = "") {
+        const created = await apiRequest(`/api/questions/${questionId}/choices/`, {
+            method: "POST",
+            body: {
+                text,
+                order,
+                is_correct: false,
+            },
+        });
+        return {
+            ...created,
+            order: created.order ?? order,
+        };
+    }
+
+    async function createQuestion(options = {}) {
+        const withDefaultChoices = !!options.withDefaultChoices;
+        const nextOrder = state.questions.length;
+        const createdQuestion = await apiRequest(`/api/quiz/${state.quizId}/questions/`, {
+            method: "POST",
+            body: {
+                text: "",
+                order: nextOrder,
+                question_type: "MC",
+            },
+        });
+
+        const question = {
+            id: createdQuestion.id,
+            text: createdQuestion.text,
+            order: createdQuestion.order,
+            question_type: "MC",
+            choices: [],
+        };
+
+        if (withDefaultChoices) {
+            for (let order = 1; order <= 4; order += 1) {
+                const choice = await createChoice(question.id, order, "");
+                question.choices.push(choice);
+            }
+        }
+
+        state.questions.push(question);
+        state.currentIndex = state.questions.length - 1;
+        render();
+    }
+
+    async function addChoiceForCurrentQuestion() {
+        const question = getCurrentQuestion();
+        if (!question || question.choices.length >= 4) {
+            return;
+        }
+
+        const created = await createChoice(question.id, question.choices.length + 1, "");
+        question.choices.push(created);
+        question.choices = sortByOrder(question.choices);
+        renderChoices();
+    }
+
+    async function deleteChoice(choice) {
+        const question = getCurrentQuestion();
+        if (!question || !choice) {
+            return;
+        }
+
+        if (choice.id) {
+            await apiRequest(`/api/choices/${choice.id}/`, { method: "DELETE" });
+        }
+
+        question.choices = question.choices.filter(item => item.id !== choice.id);
+        question.choices = question.choices.map((item, index) => ({
+            ...item,
+            order: index + 1,
+        }));
+        renderChoices();
+    }
+
+    async function deleteCurrentQuestion() {
+        const question = getCurrentQuestion();
+        if (!question) {
+            return;
+        }
+
+        const confirmed = window.confirm("Delete this question?");
+        if (!confirmed) {
+            return;
+        }
+
+        await apiRequest(`/api/questions/${question.id}/`, { method: "DELETE" });
+        state.questions.splice(state.currentIndex, 1);
+
+        if (!state.questions.length) {
+            await createQuestion({ withDefaultChoices: false });
+            return;
+        }
+
+        state.currentIndex = Math.min(state.currentIndex, state.questions.length - 1);
+        await loadQuiz();
+    }
+
+    async function deleteQuiz() {
+        const confirmed = window.confirm("Delete this quiz? This action cannot be undone.");
+        if (!confirmed) {
+            return;
+        }
+
+        await apiRequest(`/api/quiz/${state.quizId}/`, { method: "DELETE" });
+        window.location.href = "/home";
+    }
+
+    async function goPrev() {
+        if (state.currentIndex === 0) {
+            return;
+        }
+        state.currentIndex -= 1;
+        render();
+    }
+
+    async function goNext() {
+        if (state.currentIndex < state.questions.length - 1) {
+            state.currentIndex += 1;
+            render();
+            return;
+        }
+
+        await createQuestion({ withDefaultChoices: false });
+    }
+
+    quizTitleInput.addEventListener("blur", function () {
+        saveQuizTitle().catch(error => console.error(error));
+    });
+
+    questionTextInput.addEventListener("blur", function () {
+        saveCurrentQuestion().catch(error => console.error(error));
+    });
+
+    prevBtn.addEventListener("click", function () {
+        goPrev().catch(error => console.error(error));
+    });
+
+    nextBtn.addEventListener("click", function () {
+        goNext().catch(error => console.error(error));
+    });
+
+    deleteQuizBtn.addEventListener("click", function () {
+        deleteQuiz().catch(error => console.error(error));
+    });
+
+    deleteQuestionBtn.addEventListener("click", function () {
+        deleteCurrentQuestion().catch(error => console.error(error));
+    });
+
+    loadQuiz().catch(error => {
+        console.error(error);
+    });
+</script>
+
+{% endblock %}
