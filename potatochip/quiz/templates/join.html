@@ -28,7 +28,7 @@ Join!
         <button type="submit">Home</button>
     </form>
     <form class="quiz-header" action="{% url 'join' %}" method="get">
-        <button type="submit" class="curr-page">Join a Quiz</button>
+        <button type="submit" class="curr-page">Join</button>
     </form>
     <form class="quiz-header" action="{% url 'logout' %}" method="post">
         {% csrf_token %}
@@ -41,9 +41,8 @@ Join!
 
     <form class="join-input" onsubmit="handleJoin(event)">
         <div class="row form-border form-row">
-            <label for="code" class="col col-4 id">6-digit ID</label>
             <input type="text" id="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" minlength="6" required
-                placeholder="123456" class="col">
+                placeholder="6-digit ID" class="col">
         </div>
         <div class="row form-row">
             <button type="submit" class="col col-5 join-quiz">Join!</button>

@@ -11,6 +11,9 @@
     width: 50vw;
     background-color: #DADBE7;
 }
+button {
+    white-space: nowrap;
+}
 
 body {
     background-color: var(--primary-bg);
@@ -49,4 +52,15 @@ input:active {
 .form-row {
     margin: 16px;
     justify-content: center;
+}
+
+.quiz-header {
+    white-space: nowrap;
+}
+
+@media (max-width: 1225px) {
+    /* button text is now set directly in templates; no pseudo replacements */
+}
+
+@media (max-width: 900px) {
 }

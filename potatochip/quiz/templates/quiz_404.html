@@ -1,5 +1,11 @@
-{% extends "base.html" %} {% load static %} {% block head_extra %}
-<link rel="stylesheet" href="{% static 'potatochip/css/404.css' %}"> {% endblock %} {% block body %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'potatochip/css/404.css' %}">
+{% endblock %}
+
+{% block body %}
 <div class="box">
     <h1>404</h1>
     <p>The quiz you were expcting to join may be over or not exist!</p>

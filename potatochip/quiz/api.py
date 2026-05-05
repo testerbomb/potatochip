@@ -1,4 +1,5 @@
 from ninja import NinjaAPI, Schema
+from typing import List
 from ninja.errors import HttpError
 from .models import Quiz, Quiz_Instance, Quiz_Question, Answer_Choice
 from django.shortcuts import get_object_or_404
@@ -19,6 +20,10 @@ class ChoiceSchema(Schema):
     text: str
     order: int
     is_correct: bool = False
+
+
+class BulkDeleteSchema(Schema):
+    ids: List[int]
 
 
 def _assert_quiz_owner(quiz, user):
@@ -68,6 +73,7 @@ def create_instance(request, quiz_id: int):
         code=generate_code(),
     )
     return {'code': instance.code}
+
 
 
 @api.post('/create/')
@@ -202,3 +208,23 @@ def generate_code():
         code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
         if not Quiz_Instance.objects.filter(code=code).exists():
             return code
+
+
+@api.post('/delete-quiz/')
+def bulk_delete_quizzes(request, payload: BulkDeleteSchema):
+    results = []
+    for pk in payload.ids:
+        try:
+            quiz = Quiz.objects.get(pk=pk)
+        except Quiz.DoesNotExist:
+            results.append({'id': pk, 'success': False, 'error': 'not found'})
+            continue
+
+        if quiz.creator != request.user:
+            results.append({'id': pk, 'success': False, 'error': "not owner"})
+            continue
+
+        quiz.delete()
+        results.append({'id': pk, 'success': True})
+
+    return {'results': results}

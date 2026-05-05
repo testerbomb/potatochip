@@ -1,5 +1,11 @@
-{% extends "base.html" %} {% load static %} {% block head_extra %}
-<link rel="stylesheet" href="{% static 'potatochip/css/home.css' %}">{% endblock %} {% block title %}Create!{% endblock %} {% block body %} {% block header %}
+{% extends "base.html" %}
+{% load static %}
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'potatochip/css/home.css' %}">
+{% endblock %}
+{% block title %}Create!{% endblock %}
+{% block body %}
+{% block header %}
 <div class="nav-buttons">
     <button type="submit" class="invis">About</button>
     <button type="submit" class="invis">Home</button>
@@ -18,10 +24,10 @@
         <button type="submit" class="curr-page">Home</button>
     </form>
     <form class="quiz-header" action="{% url 'join' %}" method="get">
-        <button type="submit">Join a Quiz</button>
+        <button type="submit">Join</button>
     </form>
     <form class="quiz-header" action="{% url 'search' %}" method="get">
-        <button type="submit">Search for a Quiz</button>
+        <button type="submit">Search</button>
     </form>
     <form class="quiz-header" action="{% url 'logout' %}" method="post">
         {% csrf_token %}
@@ -34,7 +40,7 @@
     <h1 class="quiz-box">Create or Host Your Quiz!</h1>
     <div class="quiz-grid">
         {% for quiz in page_obj %}
-        <a class="quiz-buttons" href="{% url 'quiz_detail' quiz.id %}">
+        <a class="quiz-buttons" href="{% url 'quiz_detail' quiz.id %}" data-quiz-id="{{ quiz.id }}">
             <h2>{{ quiz.title }}</h2>
             {% if quiz.description %}
             <p>{{ quiz.description|truncatechars:120 }}</p>
@@ -45,6 +51,10 @@
         <p class="quiz-text">No quizzes available yet.</p>
         {% endfor %}
         <button class="create" onclick="create_new_quiz()">+</button>
+    </div>
+
+    <div class="bulk-delete-controls" id="bulk-delete-controls">
+        <button class="danger" type="button" id="delete-mode-btn">Delete</button>
     </div>
 
     <!-- Pagination Controls -->
@@ -82,5 +92,88 @@
             .find(c => c.trim().startsWith(name + '='));
         return cookie ? cookie.split('=')[1] : null;
     }
+
+    const bulkControls = document.getElementById('bulk-delete-controls');
+    const quizCards = Array.from(document.querySelectorAll('.quiz-buttons[data-quiz-id]'));
+    let deleteMode = false;
+    const selectedQuizIds = new Set();
+
+    function renderDeleteControls() {
+        if (!deleteMode) {
+            bulkControls.innerHTML = '<button class="danger" type="button" id="delete-mode-btn">Delete</button>';
+            document.getElementById('delete-mode-btn').addEventListener('click', enableDeleteMode);
+            return;
+        }
+
+        bulkControls.innerHTML = [
+            '<button type="button" id="delete-cancel-btn">Cancel</button>',
+            '<button class="danger" type="button" id="delete-submit-btn" disabled>Submit for deletion</button>'
+        ].join('');
+
+        document.getElementById('delete-cancel-btn').addEventListener('click', disableDeleteMode);
+        document.getElementById('delete-submit-btn').addEventListener('click', submitBulkDelete);
+    }
+
+    function enableDeleteMode() {
+        deleteMode = true;
+        quizCards.forEach(card => card.classList.add('delete-mode'));
+        renderDeleteControls();
+    }
+
+    function disableDeleteMode() {
+        deleteMode = false;
+        selectedQuizIds.clear();
+        quizCards.forEach(card => {
+            card.classList.remove('delete-mode');
+            card.classList.remove('selected-for-delete');
+        });
+        renderDeleteControls();
+    }
+
+    function updateSubmitEnabled() {
+        const submit = document.getElementById('delete-submit-btn');
+        if (submit) {
+            submit.disabled = selectedQuizIds.size === 0;
+        }
+    }
+
+    async function submitBulkDelete() {
+        const submit = document.getElementById('delete-submit-btn');
+        if (!submit || selectedQuizIds.size === 0) return;
+
+        submit.disabled = true;
+        submit.textContent = 'Deleting...';
+
+        const response = await fetch('/api/delete-quiz/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ ids: Array.from(selectedQuizIds) })
+        });
+
+        await response.json();
+        window.location.reload();
+    }
+
+    quizCards.forEach(card => {
+        card.addEventListener('click', (event) => {
+            if (!deleteMode) return;
+
+            event.preventDefault();
+            const id = Number(card.dataset.quizId);
+            if (selectedQuizIds.has(id)) {
+                selectedQuizIds.delete(id);
+                card.classList.remove('selected-for-delete');
+            } else {
+                selectedQuizIds.add(id);
+                card.classList.add('selected-for-delete');
+            }
+            updateSubmitEnabled();
+        });
+    });
+
+    renderDeleteControls();
 </script>
 {% endblock %}

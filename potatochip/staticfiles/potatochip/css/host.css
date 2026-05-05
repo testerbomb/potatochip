@@ -213,7 +213,7 @@ body {
     margin: 6px 0;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 968px) {
     .join-container {
         grid-template-columns: 1fr;
         justify-items: center;

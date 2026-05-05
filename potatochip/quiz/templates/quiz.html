@@ -1,10 +1,18 @@
-{% extends "base.html" %} {% load static %} {% block head_extra %}
-<link rel="stylesheet" href="{% static 'potatochip/css/quiz.css' %}"> {% endblock %} {% block title %}{{ quiz.title }}{%
-endblock %} {% block body %} {% block header %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="{% static 'potatochip/css/quiz.css' %}">
+{% endblock %}
+
+{% block title %}{{ quiz.title }}{% endblock %}
+
+{% block body %}
+{% block header %}
 <div class="nav-buttons">
     <button type="submit" class="invis">About</button>
     <button type="submit" class="invis">Home</button>
-    <button type="submit" class="invis">Join a Quiz</button>
+    <button type="submit" class="invis">Join</button>
     <button type="submit" class="invis">Sign out</button>
     <!-- if anyone has a better way to do this i am open to suggestions! -->
 
@@ -19,10 +27,10 @@ endblock %} {% block body %} {% block header %}
         <button type="submit">Home</button>
     </form>
     <form class="quiz-header" action="{% url 'join' %}" method="get">
-        <button type="submit">Join a Quiz</button>
+        <button type="submit">Join</button>
     </form>
     <form class="quiz-header" action="{% url 'search' %}" method="get">
-        <button type="submit">Search for a Quiz</button>
+        <button type="submit">Search</button>
     </form>
     <form class="quiz-header" action="{% url 'logout' %}" method="post">
         {% csrf_token %}
@@ -52,12 +60,12 @@ endblock %} {% block body %} {% block header %}
     <script>
         function create_quiz() {
             fetch("/api/host/{{ quiz.id }}/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": getCookie("csrftoken")
-                },
-            })
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCookie("csrftoken")
+                    },
+                })
                 .then(res => res.json())
                 .then(data => {
                     //TODO redirection

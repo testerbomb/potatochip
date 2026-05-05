@@ -11,7 +11,7 @@
 <div class="nav-buttons">
     <button type="submit" class="invis">About</button>
     <button type="submit" class="invis">Home</button>
-    <button type="submit" class="invis">Join a Quiz</button>
+    <button type="submit" class="invis">Join</button>
     <button type="submit" class="invis">Sign out</button>
     <!-- if anyone has a better way to do this i am open to suggestions! -->
 
@@ -29,7 +29,7 @@
         <button type="submit">Home</button>
     </form>
     <form class="quiz-header" action="{% url 'join' %}" method="get">
-        <button type="submit">Join a Quiz</button>
+        <button type="submit">Join</button>
     </form>
     <form class="quiz-header" action="{% url 'logout' %}" method="post">
         {% csrf_token %}
