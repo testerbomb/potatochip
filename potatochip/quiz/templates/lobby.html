@@ -68,6 +68,12 @@
         header_screen_name.textContent = name || '';
         curr_score.textContent = String(score ?? 0);
         status_bar.style.display = 'flex';
+        // hack for spacing
+        const qv = document.getElementById('question-view');
+        if (qv) {
+            const gap = 8; 
+            qv.style.paddingTop = (status_bar.offsetHeight + gap) + 'px';
+        }
     }
 
     function create_socket() {
@@ -171,7 +177,7 @@
             const item = document.createElement('li');
             const button = document.createElement('button');
             item.addEventListener('click', () => handle_choice(choice.text));
-            item.textContent = choice.text
+            // item.textContent = choice.text
             choices_view.appendChild(item);
         }
     }
