@@ -51,7 +51,7 @@ def _serialize_question(question):
 
 
 def _reorder_questions(quiz):
-    for index, question in enumerate(quiz.questions.all(), start=1):
+    for index, question in enumerate(quiz.questions.all(), start=0):
         if question.order != index:
             question.order = index
             question.save(update_fields=['order'])
