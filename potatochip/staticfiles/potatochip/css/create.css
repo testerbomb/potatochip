@@ -13,7 +13,7 @@
     padding: 20px;
     gap: 16px;
     grid-template-areas:
-        "title title"
+        "title ai-btn"
         "question-text question-text"
         "choices choices"
         "choices choices"
@@ -50,6 +50,27 @@
     border-radius: 10px;
     background-color: #DADBE7;
     padding: 5px 20px;
+}
+
+.ai-generate-btn {
+    grid-area: ai-btn;
+    height: 100%; /* Spans full height of the row */
+    padding: 0 20px;
+    border-radius: 10px; /* Matches your .quiz-title border-radius */
+    color: #fff;
+    border: none;
+    font-family: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.ai-generate-btn:hover {
+    filter: brightness(1.1);
+    transform: scale(1.05);
 }
 
 .question-text {

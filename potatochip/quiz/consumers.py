@@ -74,10 +74,11 @@ class LobbyConsumer(AsyncJsonWebsocketConsumer):
         quiz = await self.get_quiz()
         participant_id = content['participant_id']
         name = await self.get_participant_name(quiz, participant_id)
+        particpant = await self.get_participant_by_id(participant_id)
         if name is None:
             await self.send_error('Participent does not exist!')
             return
-
+        score = particpant.score
         question_order = quiz.current_question - 1
         question = None
 
@@ -98,7 +99,9 @@ class LobbyConsumer(AsyncJsonWebsocketConsumer):
             'name': name,
             'participant_id': participant_id,
             'question': question,
+            'score': score,
             'resume_state': resume_state,
+            'correct': await self.has_participant_answered_correct(participant_id)
         })
 
     async def handle_answer_submit(self, content):
@@ -496,6 +499,56 @@ class LobbyConsumer(AsyncJsonWebsocketConsumer):
                 'id': str(participant.id),
             }
             for participant in participants
+        ]
+
+    async def has_participant_answered_correct(self, participant_id):
+        """
+        Check if a participant answered correctly for the current question.
+        Returns True if the participant's selected answer is marked as correct, False otherwise.
+        """
+        quiz = await self.get_quiz()
+        question_order = quiz.current_question - 1
+
+        # Check if participant has answered this question
+        if not self.has_participant_answered(participant_id, question_order):
+            return False
+
+        # Get the participant's selected index
+        answers_by_question = self.PARTICIPANT_ANSWERS.get(self.code, {})
+        participant_answers = answers_by_question.get(question_order, {})
+        selected_index = participant_answers.get(str(participant_id))
+
+        if selected_index is None:
+            return False
+
+        # Get the choices for this question
+        choices = await self.get_question_choices_by_order(question_order)
+
+        # Check if the selected choice is correct
+        if selected_index >= len(choices):
+            return False
+
+        return choices[selected_index].get('is_correct', False)
+
+    @database_sync_to_async
+    def get_question_choices_by_order(self, question_order):
+        """
+        Get all answer choices for a question by its order.
+        Returns a list of choice dicts with text and is_correct.
+        """
+        quiz_instance = Quiz_Instance.objects.select_related('quiz').get(
+            code=self.code,
+        )
+        question = quiz_instance.quiz.questions.prefetch_related(
+            'choices',
+        ).get(order=question_order)
+
+        return [
+            {
+                'text': choice.text,
+                'is_correct': choice.is_correct,
+            }
+            for choice in question.choices.all()
         ]
 
     @database_sync_to_async

@@ -50,7 +50,8 @@
 
 .quiz-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-rows: repeat(3, auto);
     justify-content: center;
     gap: 12px;
     text-align: center;
@@ -99,9 +100,24 @@
     color: #181925;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1225px) {
+    .quiz-grid {
+        grid-template-columns: repeat(3, minmax(200px, 1fr));
+        grid-template-rows: repeat(3, auto);
+    }
+}
+
+@media (min-width: 613px) and (max-width: 900px) {
     .quiz-grid {
         grid-template-columns: repeat(2, minmax(200px, 1fr));
+        grid-template-rows: repeat(2, auto);
+    }
+}
+
+@media (max-width: 612px) {
+    .quiz-grid {
+        grid-template-columns: repeat(1, minmax(200px, 1fr));
+        grid-template-rows: repeat(1, auto);
     }
 }
 

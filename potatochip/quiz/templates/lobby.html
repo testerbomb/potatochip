@@ -35,6 +35,7 @@
     <h2 id="points">0000</h2>
 </div>
 
+
 <div class="view" id="final" style="display:none">
     <h1>Good Job!</h1>
     <p>You got <span id="points">0000</span></p>
@@ -117,7 +118,7 @@
                     participantId = data.participant_id;
                 }
 
-                setStatusBar(screenName, score_number);
+                
 
                 if (data.resume_state === 'question' && data.question) {
                     render_choices(data.question.choices);
@@ -127,9 +128,14 @@
                     SUBMITTED = true;
                     submitted_view.style.display = 'block';
                 }
+                else if (data.resume_state === 'submitted-grade') {
+                    SUBMITTED = true;
+                    handle_answer_grade({ correct: data.correct, points: data.correct ? 100 : 0});
+                }
                 else {
                     waiting_view.style.display = 'block';
                 }
+                setStatusBar(screenName, data.score);
             }
 
             if (data.type == "answer_grade") {

@@ -18,18 +18,29 @@ import environ
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 env = environ.Env()
-environ.Env.read_env(BASE_DIR / 'potatochip' / '.env')
+# try the root directory first
+env_file = BASE_DIR / '.env'
+# if it's not in the root check inside the 'potatochip' folder
+if not env_file.exists():
+    env_file = BASE_DIR / 'potatochip' / '.env'
+if env_file.exists():
+    environ.Env.read_env(str(env_file))
+else:
+    print("CRITICAL: .env file not found!")
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-5+ewzqp8_#zs6s24#yxp817p8sf+xtzw5m47(m(8a6zr*+wb)y')
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    if os.getenv('DEBUG', 'False').lower() == 'true':
+        SECRET_KEY = 'django-insecure-local-development-only817p8sf+xtzw5m47(m(8a6zr*+wb)y'
+    else:
+        raise ValueError("SECRET_KEY environment variable is missing!")
 
-# SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = os.getenv('DEBUG', 'True').lower() == 'true'
-DEBUG = False
+DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', '*,.ngrok-free.app,127.0.0.1,localhost').split(',') if h.strip()]
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv('CSRF_TRUSTED_ORIGINS', 'https://potatochip-jsbl6.ondigitalocean.app,https://*.ondigitalocean.app,http://127.0.0.1,http://localhost').split(',') if o.strip()]
@@ -62,6 +73,7 @@ CHANNEL_LAYERS = {
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -119,6 +131,40 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# detailed logging sent to the console for debugging and monitoring
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',  # ensures INFO logs show up
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        # This targets your specific app's logger
+        'api': { 
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
@@ -158,3 +204,5 @@ USE_X_FORWARDED_HOST = True
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+LOGOUT_REDIRECT_URL = 'index'
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', '')
